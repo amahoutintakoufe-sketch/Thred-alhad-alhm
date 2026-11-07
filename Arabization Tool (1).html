@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تعريب ألعاب الهم | محرك تعريب الألعاب الملكي</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --terminal-bg: #050807;
+            --card-bg: #0a110e;
+            --neon-green: #00ff66;
+            --neon-dim: rgba(0, 255, 102, 0.15);
+            --neon-glow: 0 0 15px rgba(0, 255, 102, 0.4);
+            --border-color: #00441b;
+            --danger-color: #ff0055;
+        }
+
+        body {
+            background-color: var(--terminal-bg);
+            color: var(--neon-green);
+            font-family: 'Courier New', Courier, monospace;
+            min-height: 100vh;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #030504;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #00441b;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--neon-green);
+        }
+
+        .neon-border {
+            border: 1px solid var(--neon-green);
+            box-shadow: var(--neon-glow);
+        }
+
+        .neon-text-glow {
+            text-shadow: 0 0 8px rgba(0, 255, 102, 0.6);
+        }
+
+        .btn-cyber {
+            background: #00220d;
+            border: 1px solid var(--neon-green);
+            color: var(--neon-green);
+            transition: all 0.2s ease-in-out;
+        }
+
+        .btn-cyber:hover:not(:disabled) {
+            background: var(--neon-green);
+            color: #000;
+            box-shadow: var(--neon-glow);
+        }
+
+        .btn-cyber:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            border-color: #00441b;
+        }
+
+        .cyber-input {
+            background: #030705;
+            border: 1px solid var(--border-color);
+            color: #ffffff;
+            transition: border-color 0.2s ease;
+        }
+
+        .cyber-input:focus {
+            outline: none;
+            border-color: var(--neon-green);
+            box-shadow: 0 0 8px rgba(0, 255, 102, 0.3);
+        }
+
+        .blink {
+            animation: blinker 1s linear infinite;
+        }
+
+        @keyframes blinker {
+            50% { opacity: 0; }
+        }
+    </style>
+</head>
+<body class="p-3 md:p-6 flex flex-col min-h-screen">
+
+    <!-- Header Section -->
+    <header class="max-w-7xl mx-auto w-full mb-6 neon-border bg-[#0a110e] p-4 rounded-xl flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="text-center md:text-right">
+            <h1 class="text-2xl md:text-3xl font-bold text-white neon-text-glow flex items-center gap-2 justify-center md:justify-start">
+                <i class="fa-solid font-bold fa-gamepad text-emerald-400"></i>
+                👑 تعريب ألعاب الهم
+            </h1>
+            <p class="text-xs text-emerald-400 opacity-80 mt-1">// المحرك التفاعلي الاسترشادي لترجمة وتحرير ملفات الألعاب</p>
+        </div>
+
+        <!-- System Stats / Counters -->
+        <div class="flex items-center gap-4 text-xs md:text-sm">
+            <div class="bg-black/60 p-2 px-4 rounded-lg border border-emerald-900 text-center">
+                <span class="block text-gray-400">إجمالي النصوص</span>
+                <span id="totalCount" class="text-lg font-bold text-white">0</span>
+            </div>
+            <div class="bg-black/60 p-2 px-4 rounded-lg border border-emerald-900 text-center">
+                <span class="block text-gray-400">المترجم</span>
+                <span id="translatedCount" class="text-lg font-bold text-emerald-400">0</span>
+            </div>
+            <div class="bg-black/60 p-2 px-4 rounded-lg border border-emerald-900 text-center">
+                <span class="block text-gray-400">نسبة التعريب</span>
+                <span id="percentageCount" class="text-lg font-bold text-emerald-300">0%</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <main class="max-w-7xl mx-auto w-full flex-grow flex flex-col gap-6">
+        
+        <!-- Controls & Tools Bar -->
+        <div class="bg-[#0a110e] p-4 rounded-xl border border-emerald-900 flex flex-wrap justify-between items-center gap-3">
+            <!-- Left Side Actions: File Import -->
+            <div class="flex flex-wrap items-center gap-2">
+                <label for="fileInput" class="btn-cyber px-4 py-2 rounded-lg cursor-pointer text-sm font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-file-import"></i> رفع ملف لعبة (JSON/TXT)
+                </label>
+                <input type="file" id="fileInput" accept=".json,.txt" class="hidden" onchange="handleFileUpload(event)">
+                
+                <button onclick="loadSampleData()" class="btn-cyber px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-vial"></i> تحميل نموذج تجريبي
+                </button>
+            </div>
+
+            <!-- Right Side Actions: Translation Helpers & Export -->
+            <div class="flex flex-wrap items-center gap-2">
+                <button onclick="autoTranslateAll()" id="autoBtn" class="btn-cyber px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2" disabled>
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> ترجمة آلية مساعدة
+                </button>
+
+                <button onclick="exportTranslatedFile()" id="exportBtn" class="bg-emerald-600 hover:bg-emerald-500 text-black font-bold px-4 py-2 rounded-lg text-sm transition flex items-center gap-2" disabled>
+                    <i class="fa-solid fa-download"></i> تصدير ملف التعريب (.JSON)
+                </button>
+            </div>
+        </div>
+
+        <!-- Progress Bar Section -->
+        <div class="w-full bg-black/80 rounded-full h-4 border border-emerald-900 overflow-hidden relative">
+            <div id="progressBar" class="bg-gradient-to-l from-emerald-400 to-emerald-700 h-full w-0 transition-all duration-300"></div>
+            <span id="progressText" class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white drop-shadow">0% مكتمل</span>
+        </div>
+
+        <!-- Search and Filter Bar -->
+        <div class="flex flex-col md:flex-row justify-between items-center gap-3 bg-[#0a110e] p-3 rounded-lg border border-emerald-950">
+            <div class="w-full md:w-1/2 relative">
+                <i class="fa-solid fa-magnifying-glass absolute right-3 top-3 text-emerald-700"></i>
+                <input type="text" id="searchInput" placeholder="ابحث في النصوص الأصلية أو المترجمة..." oninput="filterEntries()" class="w-full cyber-input pr-10 pl-4 py-2 rounded-lg text-sm">
+            </div>
+            
+            <div class="flex items-center gap-2 w-full md:w-auto justify-end text-xs">
+                <button onclick="setFilter('all')" id="filterAll" class="px-3 py-1.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800">الكل</button>
+                <button onclick="setFilter('untranslated')" id="filterUntranslated" class="px-3 py-1.5 rounded bg-black text-gray-400 border border-emerald-950">غير مترجم</button>
+                <button onclick="setFilter('translated')" id="filterTranslated" class="px-3 py-1.5 rounded bg-black text-gray-400 border border-emerald-950">مترجم</button>
+            </div>
+        </div>
+
+        <!-- Interactive Translation Table Container -->
+        <div class="flex-grow bg-[#0a110e] rounded-xl border border-emerald-900 p-4 flex flex-col overflow-hidden min-h-[350px]">
+            <div class="overflow-x-auto overflow-y-auto max-h-[500px] w-full">
+                <table class="w-full text-right text-sm border-collapse">
+                    <thead class="bg-black/90 sticky top-0 border-b border-emerald-800 text-emerald-400 text-xs">
+                        <tr>
+                            <th class="p-3 w-12 text-center">#</th>
+                            <th class="p-3 w-32">المفتاح (Key)</th>
+                            <th class="p-3 w-5/12">النص الأصلي (English)</th>
+                            <th class="p-3 w-5/12">الترجمة العربية (Arabic)</th>
+                            <th class="p-3 w-20 text-center">خيارات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody" class="divide-y divide-emerald-950/60">
+                        <!-- Default empty state message -->
+                        <tr id="emptyRow">
+                            <td colspan="5" class="text-center py-12 text-gray-500">
+                                <i class="fa-solid fa-folder-open text-4xl mb-3 text-emerald-900 block"></i>
+                                لم يتم تحميل أي ملف نصوص بعد. يرجى رفع ملف أو تجربة "تحميل نموذج تجريبي".
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Notification Toast Box -->
+    <div id="toast" class="fixed bottom-5 left-5 bg-black border border-emerald-500 text-emerald-400 px-4 py-3 rounded-lg shadow-2xl hidden flex items-center gap-3 z-50 text-sm">
+        <i id="toastIcon" class="fa-solid fa-circle-check"></i>
+        <span id="toastMsg">تمت العملية بنجاح!</span>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Data State Store
+        let rawEntries = []; // Holds items { id, key, original, translated }
+        let currentFilter = 'all';
+
+        // Sample Data for immediate testing
+        const sampleGameTexts = {
+            "menu_start_game": "Start Game",
+            "menu_options": "Settings & Options",
+            "menu_quit": "Quit to Desktop",
+            "dialogue_hero_01": "Welcome brave knight to the Kingdom of Shadows!",
+            "item_sword_name": "Dragon Slayer Blade",
+            "item_sword_desc": "A legendary sword forged in ancient fires.",
+            "quest_objective": "Find the key and unlock the secret chamber.",
+            "error_connection": "Connection lost. Reconnecting to server..."
+        };
+
+        // Quick Arabic Lookup for Auto-Translation Demo
+        const dictionaryMock = {
+            "Start Game": "بدء اللعبة",
+            "Settings & Options": "الإعدادات والخيارات",
+            "Quit to Desktop": "الخروج إلى سطح المكتب",
+            "Welcome brave knight to the Kingdom of Shadows!": "مرحباً بك أيها الفارس الشجاع في مملكة الظلال!",
+            "Dragon Slayer Blade": "سيف قاطع التنانين",
+            "A legendary sword forged in ancient fires.": "سيف أسطوري تم صقله في نيران قديمة.",
+            "Find the key and unlock the secret chamber.": "اعثر على المفتاح وافتح الغرفة السرية.",
+            "Connection lost. Reconnecting to server...": "فُقد الاتصال. جاري إعادة الاتصال بالسيرفر..."
+        };
+
+        // Handle File Upload Functionality
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const content = e.target.result;
+                    let parsedData = {};
+
+                    if (file.name.endsWith('.json')) {
+                        parsedData = JSON.parse(content);
+                    } else {
+                        // Parse key=value or plain text format
+                        const lines = content.split('\n');
+                        lines.forEach((line, index) => {
+                            if (line.trim()) {
+                                const parts = line.split('=');
+                                if (parts.length > 1) {
+                                    parsedData[parts[0].trim()] = parts.slice(1).join('=').trim();
+                                } else {
+                                    parsedData[`line_${index + 1}`] = line.trim();
+                                }
+                            }
+                        });
+                    }
+
+                    populateData(parsedData);
+                    showToast("تم تحميل الملف ونصوص اللعبة بنجاح! ✅");
+                } catch (err) {
+                    showToast("خطأ في قراءة الملف. يرجى التأكد من التنسيق الصحيح.", "fa-triangle-exclamation", true);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Load Sample Data for Demo
+        function loadSampleData() {
+            populateData(sampleGameTexts);
+            showToast("تم تحميل النصوص النموذجية بنجاح! 🎮");
+        }
+
+        // Convert Object data into internal state array
+        function populateData(objData) {
+            rawEntries = [];
+            let index = 1;
+            for (let key in objData) {
+                if (objData.hasOwnProperty(key)) {
+                    rawEntries.push({
+                        id: index++,
+                        key: key,
+                        original: objData[key],
+                        translated: ""
+                    });
+                }
+            }
+
+            document.getElementById('autoBtn').disabled = rawEntries.length === 0;
+            document.getElementById('exportBtn').disabled = rawEntries.length === 0;
+            
+            renderTable();
+            updateStats();
+        }
+
+        // Render Data Rows into Table
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            const searchVal = document.getElementById('searchInput').value.toLowerCase();
+
+            tbody.innerHTML = '';
+
+            const filteredEntries = rawEntries.filter(entry => {
+                const matchesSearch = entry.original.toLowerCase().includes(searchVal) || 
+                                      entry.key.toLowerCase().includes(searchVal) ||
+                                      entry.translated.toLowerCase().includes(searchVal);
+                
+                if (!matchesSearch) return false;
+
+                if (currentFilter === 'translated') return entry.translated.trim() !== '';
+                if (currentFilter === 'untranslated') return entry.translated.trim() === '';
+                return true;
+            });
+
+            if (filteredEntries.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center py-8 text-gray-500">
+                            لا توجد نتائج تطابق خيارات البحث والفلترة.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            filteredEntries.forEach(entry => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-emerald-950/30 transition border-b border-emerald-950/40";
+                tr.innerHTML = `
+                    <td class="p-3 text-center text-xs text-gray-500">${entry.id}</td>
+                    <td class="p-3 font-mono text-xs text-emerald-600 break-all">${escapeHtml(entry.key)}</td>
+                    <td class="p-3 text-gray-200 dir-ltr text-right">${escapeHtml(entry.original)}</td>
+                    <td class="p-3">
+                        <input type="text" 
+                               value="${escapeHtml(entry.translated)}" 
+                               placeholder="اكتب الترجمة العربية هنا..." 
+                               oninput="updateTranslation(${entry.id}, this.value)"
+                               class="w-full cyber-input p-2 rounded text-sm text-emerald-300">
+                    </td>
+                    <td class="p-3 text-center">
+                        <button onclick="translateSingle(${entry.id})" title="ترجمة آلية سريعة" class="text-emerald-500 hover:text-emerald-300 p-1">
+                            <i class="fa-solid fa-language text-base"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Live update translation string
+        function updateTranslation(id, val) {
+            const item = rawEntries.find(e => e.id === id);
+            if (item) {
+                item.translated = val;
+                updateStats();
+            }
+        }
+
+        // Single Row Quick Helper Translation
+        function translateSingle(id) {
+            const item = rawEntries.find(e => e.id === id);
+            if (item) {
+                if (dictionaryMock[item.original]) {
+                    item.translated = dictionaryMock[item.original];
+                } else {
+                    item.translated = `[معرب] ${item.original}`;
+                }
+                renderTable();
+                updateStats();
+                showToast(`تمت ترجمة العبارة (${item.key}) بنجاح.`);
+            }
+        }
+
+        // Auto Translate All Untranslated Items
+        function autoTranslateAll() {
+            let translatedCount = 0;
+            rawEntries.forEach(item => {
+                if (!item.translated.trim()) {
+                    item.translated = dictionaryMock[item.original] || `[تعريب] ${item.original}`;
+                    translatedCount++;
+                }
+            });
+            renderTable();
+            updateStats();
+            showToast(`تمت الترجمة الآلية لـ ${translatedCount} عنصر بنجاح! ✨`);
+        }
+
+        // Update Statistics & Progress Bar
+        function updateStats() {
+            const total = rawEntries.length;
+            const translated = rawEntries.filter(e => e.translated.trim() !== '').length;
+            const percentage = total > 0 ? Math.round((translated / total) * 100) : 0;
+
+            document.getElementById('totalCount').innerText = total;
+            document.getElementById('translatedCount').innerText = translated;
+            document.getElementById('percentageCount').innerText = `${percentage}%`;
+
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            
+            progressBar.style.width = `${percentage}%`;
+            progressText.innerText = `${percentage}% مكتمل (${translated}/${total})`;
+        }
+
+        // Filter Handlers
+        function setFilter(filterType) {
+            currentFilter = filterType;
+            ['all', 'untranslated', 'translated'].forEach(f => {
+                const btn = document.getElementById(`filter${f.charAt(0).toUpperCase() + f.slice(1)}`);
+                if (f === filterType) {
+                    btn.className = "px-3 py-1.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 font-bold";
+                } else {
+                    btn.className = "px-3 py-1.5 rounded bg-black text-gray-400 border border-emerald-950";
+                }
+            });
+            renderTable();
+        }
+
+        function filterEntries() {
+            renderTable();
+        }
+
+        // Export translated JSON file
+        function exportTranslatedFile() {
+            if (rawEntries.length === 0) return;
+
+            const exportObj = {};
+            rawEntries.forEach(entry => {
+                // If translation is empty, fallback to original or keep empty based on preference
+                exportObj[entry.key] = entry.translated.trim() !== '' ? entry.translated : entry.original;
+            });
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj, null, 4));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "arabic_game_translation.json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+
+            showToast("تم تنزيل ملف التعريب النهائي بنجاح! 💾");
+        }
+
+        // Toast Notification Function
+        function showToast(msg, icon = "fa-circle-check", isError = false) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastMsg.innerText = msg;
+            toastIcon.className = `fa-solid ${icon}`;
+            
+            if (isError) {
+                toast.style.borderColor = "#ff0055";
+                toast.style.color = "#ff0055";
+            } else {
+                toast.style.borderColor = "#00ff66";
+                toast.style.color = "#00ff66";
+            }
+
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        // Helper Escape HTML function to prevent XSS
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
